@@ -2,18 +2,50 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class User(db.Model):
+class Task(db.Model):
+    # __tablename__: "task"
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(80), unique=False, nullable=False)
-    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+    label = db.Column(db.String(250), nullable=False)
+    done = db.Column(db.Boolean(), nullable=False)
+
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return f'The task is {self.label}, done {self.done}'
 
-    def serialize(self):
+
+    def to_dict(self):
         return {
-            "id": self.id,
-            "email": self.email,
-            # do not serialize the password, its a security breach
+            "id" : self.id,
+            "done": self.done,
+            "label": self.label
+            
         }
+# Preguntar cuando se necesita @classmethod
+    @classmethod 
+    def get_all_task(cls):
+        all_task = cls.query.all()
+        return all_task
+    
+    @classmethod
+    def get_task_id(cls, id_task):
+        task = cls.query.filter_by(id = id_task).one_or_none()
+        return task
+
+    def create_new_task(self):
+        db.session.add(self)
+        db.session.commit()
+        return self 
+    
+    def delete_task(self):
+        db.session.delete(self)
+        db.session.commit()
+        return self
+
+    
+    def task_finished(self):
+        self.done = True
+        db.session.commit()
+        return self
+
+    
+    
